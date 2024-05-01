@@ -17,12 +17,12 @@ services:
   fastapi_server:
     container_name: fastapi_container
     build:
-      context: .
+      context: ./fastapi_server
     ports:
       - "8000:8000"
-    command: bash -c "uvicorn --factory main:create_app --reload --host 0.0.0.0 --port 8000 --log-level debug"
+    command: bash -c "uvicorn --factory app.main:create_app --reload --host 0.0.0.0 --port 8000 --log-level debug"
     volumes:
-      - .:/app    # used for live reloading of container to changes in app on local machine
+      - ./fastapi_server:/fastapi_server    # used for live reloading of container to changes in app on local machine
     depends_on:
       - db
     networks:
