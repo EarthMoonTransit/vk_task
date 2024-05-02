@@ -2,7 +2,13 @@
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from typing import AsyncGenerator
 
+from loguru import logger
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from app.db.db_session import get_async_engine
 from app.core.config import get_app_settings
 from app.db.models.base import Base
 
@@ -21,6 +27,23 @@ def get_async_engine() -> AsyncEngine:
     return async_engine
 
 
+# DB dependency
+async def get_async_session():
+    """Yield an async session.
+
+    All conversations with the database are established via the session
+    objects. Also. the sessions act as holding zone for ORM-mapped objects.
+    """
+    async_session = async_sessionmaker(
+        bind=get_async_engine(),
+        autoflush=False,
+        autocommit=False,
+        expire_on_commit=False,  # document this
+    )
+
+    return async_session
+
+
 async def initialize_database() -> None:
     """Create table in metadata if they don't exist yet.
 
@@ -32,7 +55,3 @@ async def initialize_database() -> None:
         await async_conn.run_sync(Base.metadata.create_all)
 
         logger.success("Initializing database was successfull.")
-
-
-
-

@@ -5,14 +5,13 @@ services:
     image: postgres:14
     restart: always
     ports:
-      - "5433:5433"
+      - "5432:5432"
     volumes:
-      - ./docker_pg_data/postgres-data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     env_file:
-      - .env
+      - fastapi_server/.env
     networks:
       - web_network
-
 
   fastapi_server:
     container_name: fastapi_container
