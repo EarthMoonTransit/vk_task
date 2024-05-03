@@ -62,14 +62,9 @@ class AppSettings():
     def database_url(self) -> PostgresDsn:
         """Create a valid Postgres database url."""
         logger.success(f'pizda{self.postgres_user, self.postgres_password, self.postgres_host, self.postgres_port, self.postgres_db}')
-        return URL.create(
-            drivername="postgresql+asyncpg",
-            host=self.postgres_host,
-            database=self.postgres_db,
-            username=self.postgres_user,
-            password=self.postgres_password,
-            port=self.postgres_port
-        )
+        return f'postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}'
+
+
 
     def configure_logging(self) -> None:
         """Configure and format logging used in app."""
