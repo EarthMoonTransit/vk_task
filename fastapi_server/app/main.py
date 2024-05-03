@@ -1,22 +1,36 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-#from app.api.routes.router import router as api_router
+# from app.api.routes.router import router as api_router
 from app.core.config import get_app_settings
-#from app.db.db_session import initialize_database
+from app.db.models.base import Base
+from app.api_v1 import router as router_v1
+from app.db import db_helper
+
+# from app.db.db_session import initialize_database
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with db_helper.engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
 
 def create_app() -> FastAPI:
     """Instanciating and setting up FastAPI application."""
     settings = get_app_settings()
 
-    app = FastAPI(**settings.fastapi_kwargs)
-
+    app = FastAPI(**settings.fastapi_kwargs, lifespan=lifespan)
+    app.include_router(router=router_v1, prefix=settings.api_prefix)
     return app
 
-'''def create_app():
+
+"""def create_app():
     app = FastAPI(
         debug=True,
         docs_url='/api/docs',
         title='FastApi Example'
     )
-    return app'''
+    return app"""

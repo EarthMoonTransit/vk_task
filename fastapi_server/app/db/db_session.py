@@ -1,22 +1,68 @@
 """Connection to the Postgres database."""
+
+from asyncio import current_task
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    AsyncEngine,
+    create_async_engine,
+    async_sessionmaker,
+    async_scoped_session,
+)
 from typing import AsyncGenerator
 
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.db.db_session import get_async_engine
+
 from app.core.config import get_app_settings
 from app.db.models.base import Base
 
 
-def get_async_engine() -> AsyncEngine:
+class DatabaseHelper:
+    def __init__(self, url: str, echo: bool = False):
+        self.engine = create_async_engine(
+            url=url,
+            echo=echo,
+        )
+        self.session_factory = async_sessionmaker(
+            bind=self.engine,
+            autoflush=False,
+            autocommit=False,
+            expire_on_commit=False,
+        )
+
+    def get_scoped_session(self):
+        session = async_scoped_session(
+            session_factory=self.session_factory,
+            scopefunc=current_task,
+        )
+        return session
+
+    async def session_dependency(self) -> AsyncSession:
+        async with self.session_factory() as session:
+            yield session
+            await session.close()
+
+    async def scoped_session_dependency(self) -> AsyncSession:
+        session = self.get_scoped_session()
+        yield session
+        await session.close()
+
+
+db_helper = DatabaseHelper(
+    url=get_app_settings().database_url,
+    echo=True,
+)
+
+
+'''def get_async_engine() -> AsyncEngine:
     """Return async database engine."""
+    async_engine = None
     try:
-        async_engine: AsyncEngine = create_async_engine(
+        logger.success(f"nY Davai{get_app_settings().database_url}")
+        async_engine = create_async_engine(
             get_app_settings().database_url,
             future=True,
         )
@@ -44,6 +90,19 @@ async def get_async_session():
     return async_session
 
 
+async def get_scoped_session():
+    session_fac = await get_async_session()
+    session = async_scoped_session(session_factory=session_fac, scopefunc=current_task)
+    return session
+
+
+async def session_dependency() -> AsyncSession:
+    session = await get_scoped_session()
+    async with session as sess:
+        yield sess
+        await session.remove()
+
+
 async def initialize_database() -> None:
     """Create table in metadata if they don't exist yet.
 
@@ -54,4 +113,4 @@ async def initialize_database() -> None:
     async with async_engine.begin() as async_conn:
         await async_conn.run_sync(Base.metadata.create_all)
 
-        logger.success("Initializing database was successfull.")
+        logger.success("Initializing database was successfull.")'''

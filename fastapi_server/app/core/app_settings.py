@@ -5,16 +5,15 @@ import sys
 from typing import Any, Dict, List, Tuple
 from dotenv import load_dotenv
 from pydantic import PostgresDsn
+from sqlalchemy.engine.url import URL
 
 from loguru import logger
 
 from app.core.logging import format_record, InterceptHandler
 
-
+load_dotenv()
 class AppSettings():
     """Bundle all app settings."""
-    load_dotenv()
-
     # FastAPI App settings
     debug: bool = True
     docs_url: str = "/api/docs"
@@ -24,19 +23,18 @@ class AppSettings():
     #openapi_tags: List[dict] = [tag.dict(by_alias=True) for tag in metadata_tags]
     #allowed_hosts: List[str] = ["*"]
 
-    title: str = 'FastApi Example'
+    title: str = 'FastApi Example2'
     #version: str = os.getenv("APP_VERSION")
     #description: str = os.getenv("APP_DESCRIPTION")
-    #api_prefix: str = "/api"
+    api_prefix: str = "/api/v1"
 
     # database settings
     postgres_driver: str = "asyncpg"
     postgres_user: str = os.getenv("POSTGRES_USER")
     postgres_password: str = os.getenv("POSTGRES_PASSWORD")
-    postgres_server: str = os.getenv("POSTGRES_SERVER")
+    postgres_host: str = os.getenv("POSTGRES_HOST")
     postgres_port: int = os.getenv("POSTGRES_PORT")
     postgres_db: str = os.getenv("POSTGRES_DB")
-
     # logging
     logging_level: int = logging.DEBUG
     loggers: Tuple[str, str] = ("uvicorn.asgi", "uvicorn.access")
@@ -47,6 +45,7 @@ class AppSettings():
             "debug": self.debug,
             "docs_url": self.docs_url,
             "title": self.title,
+
         }
 
     @property
@@ -54,7 +53,7 @@ class AppSettings():
         return {
             "postgres_user": self.postgres_user,
             "postgres_password": self.postgres_password,
-            "postgres_server": self.postgres_server,
+            "postgres_host": self.postgres_host,
             "postgres_port": self.postgres_port,
             "postgres_db": self.postgres_db,
         }
@@ -62,7 +61,15 @@ class AppSettings():
     @property
     def database_url(self) -> PostgresDsn:
         """Create a valid Postgres database url."""
-        return f"postgresql+{self.postgres_driver}://{self.postgres_user}:{self.postgres_password}@{self.postgres_server}:{self.postgres_port}/{self.postgres_db}"
+        logger.success(f'pizda{self.postgres_user, self.postgres_password, self.postgres_host, self.postgres_port, self.postgres_db}')
+        return URL.create(
+            drivername="postgresql+asyncpg",
+            host=self.postgres_host,
+            database=self.postgres_db,
+            username=self.postgres_user,
+            password=self.postgres_password,
+            port=self.postgres_port
+        )
 
     def configure_logging(self) -> None:
         """Configure and format logging used in app."""
