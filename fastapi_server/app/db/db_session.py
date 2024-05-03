@@ -17,7 +17,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 from app.core.config import get_app_settings
-from app.db.models.base import Base
+from app.core.models import Base
 
 
 class DatabaseHelper:

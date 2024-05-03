@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import Path, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import db_helper
-from app.db.models.product import Product
+from app.core.models import Product
 from . import crud
 
 

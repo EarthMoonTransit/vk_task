@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.models.product import Product
+from app.core.models import Product
 
 from .schemas import ProductCreate, ProductUpdatePartial
 
