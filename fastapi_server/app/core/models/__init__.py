@@ -1,12 +1,10 @@
 __all__ = (
     "Base",
-    "Product",
+    "Project",
     "User",
-    "Post",
 )
 
 
 from .base import Base
-from .product import Product
+from .project import Project
 from .user import User
-from .post import Post
